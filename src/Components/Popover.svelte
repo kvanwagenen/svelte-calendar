@@ -18,6 +18,7 @@
   let contentsWrapper;
   let translateY = 0;
   let translateX = 0;
+  let left = null;
 
   export let open = false;
   export let shrink;
@@ -87,8 +88,22 @@
     return { x, y };
   };
 
+  const getLeft = () => {
+    if (left) {
+      return left;
+    }
+    let rect = contentsWrapper.getBoundingClientRect();
+    let width = document.body.clientWidth;
+    if (rect.x + rect.width >= width - 2) {
+      const diff = rect.x + rect.width - width;
+      return "-" + diff + "px"
+    }
+    return "0px";
+  }
+
   const doOpen = async () => {
     const { x, y } = await getTranslate();
+    left = getLeft();
 
     translateX = x;
     translateY = y;
@@ -108,7 +123,7 @@
     class="contents-wrapper" 
     class:visible={open}
     class:shrink={shrink}
-    style="transform: translate(-50%,-50%) translate({translateX}px, {translateY}px)" 
+    style="translate({translateX}px, {translateY}px); left: {left}" 
     bind:this={contentsWrapper}>
     <div class="contents" bind:this={contentsAnimated}>
       <div class="contents-inner">
@@ -124,10 +139,9 @@
   }
 
   .contents-wrapper { 
-    transform: translate(-50%, -50%); 
     position: absolute;
-    top: 50%; 
-    left: 50%; 
+    top: 100%; 
+    left: 0; 
     transition: none;
     z-index: 2;
     display: none;
