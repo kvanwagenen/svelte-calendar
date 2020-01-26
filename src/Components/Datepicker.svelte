@@ -5,12 +5,13 @@
   import { getMonths, areDatesEquivalent } from './lib/helpers';
   import { formatDate, internationalize } from 'timeUtils';
   import { keyCodes, keyCodesArray } from './lib/keyCodes';
-  import { onMount, createEventDispatcher } from 'svelte';
+  import { onMount, onDestroy, createEventDispatcher } from 'svelte';
 
   const dispatch = createEventDispatcher();
   const today = new Date();
 
   let popover;
+  let closedSub;
 
   export let format = '#{m}/#{d}/#{Y}';
   export let start = new Date(1987, 9, 29);
@@ -20,6 +21,7 @@
   export let trigger = null;
   export let selectableCallback = null;
   export let weekStart = 0;
+  export let closed = null;
   export let daysOfWeek = [
     ['Sunday', 'Sun'],
     ['Monday', 'Mon'],
@@ -96,6 +98,16 @@
   onMount(() => {
     month = selected.getMonth();
     year = selected.getFullYear();
+
+    if (closed) {
+      closedSub = closed.subscribe(() => close());
+    }
+  });
+
+  onDestroy(() => {
+    if (closedSub) {
+      closedSub.unsubscribe();
+    }
   });
 
   function changeMonth(selectedMonth) {
@@ -254,7 +266,7 @@
     on:closed="{registerClose}"
   >
     <div slot="trigger">
-      <slot>
+      <slot name="trigger">
         {#if !trigger}
         <button class="calendar-button" type="button">
           {formattedSelected}
@@ -282,6 +294,9 @@
         </div>
         <Month {visibleMonth} {selected} {highlighted} {shouldShakeDate} {start}
         {end} id={visibleMonthId} on:dateSelected={e => registerSelection(e.detail)} />
+      </div>
+      <div class="footer">
+        <slot name="footer"></slot>
       </div>
     </div>
   </Popover>

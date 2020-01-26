@@ -36,10 +36,9 @@
     if (!open) return;
     let el = evt.target;
     // eslint-disable-next-line
-    do {
-      if (el === popover) return;
-    } while (el = el.parentNode);
-    close();
+    if (document.contains(el) && !popover.contains(el)) {
+      close();
+    }
   }
 
   onMount(() => {
