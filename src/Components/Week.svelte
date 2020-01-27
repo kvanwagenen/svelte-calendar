@@ -26,7 +26,7 @@
     >
       <button 
         class="day--label" 
-        class:selected={areDatesEquivalent(day.date, selected)}
+        class:selected={selected && areDatesEquivalent(day.date, selected)}
         class:highlighted={areDatesEquivalent(day.date, highlighted)}
         class:shake-date={shouldShakeDate && areDatesEquivalent(day.date, shouldShakeDate)}
         class:disabled={!day.selectable}
@@ -99,6 +99,7 @@
     padding-top: 100%;
   }
   .day--label { 
+    outline: none;
     color: var(--day-text-color);
     display: flex;
     justify-content: center;

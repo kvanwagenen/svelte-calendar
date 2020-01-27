@@ -11,17 +11,16 @@
   const today = new Date();
 
   let popover;
-  let closedSub;
 
   export let format = '#{m}/#{d}/#{Y}';
   export let start = new Date(1987, 9, 29);
   export let end = new Date(2020, 9, 29);
-  export let selected = today;
+  export let selected = null;
   export let dateChosen = false;
   export let trigger = null;
   export let selectableCallback = null;
   export let weekStart = 0;
-  export let closed = null;
+  export let closeOnSelect = true;
   export let daysOfWeek = [
     ['Sunday', 'Sun'],
     ['Monday', 'Mon'],
@@ -45,6 +44,10 @@
     ['November', 'Nov'],
     ['December', 'Dec']
   ];
+  export const close = () => {
+    popover.close();
+    registerClose();
+  };
 
   internationalize({ daysOfWeek, monthsOfYear });
   let sortedDaysOfWeek = weekStart === 0 ? daysOfWeek : (() => {
@@ -90,24 +93,18 @@
 
   export let formattedSelected;
   $: {
+    if (selected) {
     formattedSelected = typeof format === 'function'
       ? format(selected)
       : formatDate(selected, format);
+    } else {
+      formattedSelected = '';
+    }
   }
 
   onMount(() => {
-    month = selected.getMonth();
-    year = selected.getFullYear();
-
-    if (closed) {
-      closedSub = closed.subscribe(() => close());
-    }
-  });
-
-  onDestroy(() => {
-    if (closedSub) {
-      closedSub.unsubscribe();
-    }
+    month = (selected || today).getMonth();
+    year = (selected || today).getFullYear();
   });
 
   function changeMonth(selectedMonth) {
@@ -172,11 +169,14 @@
   function registerSelection(chosen) {
     if (!checkIfVisibleDateIsSelectable(chosen)) return shakeDate(chosen);
     // eslint-disable-next-line
-    close();
     selected = chosen;
+    highlighted = chosen;
     dateChosen = true;
     assignValueToTrigger(formattedSelected);
-    return dispatch('dateSelected', { date: chosen });
+    dispatch('dateSelected', { date: chosen });
+    if (closeOnSelect) {
+      close();
+    }
   }
 
   function handleKeyPress(evt) {
@@ -218,15 +218,10 @@
     dispatch('close');
   }
 
-  function close() {
-    popover.close();
-    registerClose();
-  }
-
   function registerOpen() {
     highlighted = getDefaultHighlighted();
-    month = selected.getMonth();
-    year = selected.getFullYear();
+    month = (selected || today).getMonth();
+    year = (selected || today).getFullYear();
     document.addEventListener('keydown', handleKeyPress);
     dispatch('open');
   }
@@ -350,7 +345,7 @@
 
   .legend {
     color: #4a4a4a;
-    padding: 10px 0;
+    padding: 0;
     margin-bottom: 5px;
   }
 
